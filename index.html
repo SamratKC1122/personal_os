@@ -1,1 +1,31 @@
-# personal_os
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mini Web OS</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="desktop">
+
+    <div class="window" id="aboutWindow">
+      <div class="title-bar">
+        <span>About Me</span>
+        <button onclick="closeWindow()">✖</button>
+      </div>
+      <div class="window-content">
+        <p>👋 Hi, I’m a Junior Developer.</p>
+        <p>Learning HTML, CSS & JavaScript.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="taskbar">
+    <button onclick="openWindow()">About</button>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
