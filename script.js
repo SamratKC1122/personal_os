@@ -8,12 +8,11 @@ const photo = document.getElementById("photo");
 const preview = document.querySelector(".preview");
 
 /*
-  🔥🔥 AGGRESSIVE PIXEL SETTINGS 🔥🔥
+  🎥 CINEMATIC PIXEL SETTINGS
 */
-const INTERNAL_RES = 32;   // VERY blocky
-const OUTPUT_RES = 768;   // clean upscale
-const FPS = 15;           // stabilizes motion
-const COLOR_LEVELS = 4;   // posterization strength
+const INTERNAL_RES = 72;    // balanced pixel size
+const OUTPUT_RES = 1024;   // clean cinematic export
+const FPS = 20;            // stable motion
 
 canvas.width = INTERNAL_RES;
 canvas.height = INTERNAL_RES;
@@ -24,8 +23,8 @@ let capturedData = null;
 // Start camera
 navigator.mediaDevices.getUserMedia({
   video: {
-    width: 640,
-    height: 640
+    width: 1280,
+    height: 1280
   }
 })
 .then(stream => {
@@ -35,7 +34,7 @@ navigator.mediaDevices.getUserMedia({
 })
 .catch(() => alert("Camera access denied"));
 
-// Main render loop
+// Render loop (pixelated but readable)
 function render(time) {
   if (time - lastFrame < 1000 / FPS) {
     requestAnimationFrame(render);
@@ -47,45 +46,29 @@ function render(time) {
   ctx.clearRect(0, 0, INTERNAL_RES, INTERNAL_RES);
   ctx.drawImage(video, 0, 0, INTERNAL_RES, INTERNAL_RES);
 
-  posterize();
-
   requestAnimationFrame(render);
-}
-
-// Posterization (forces pixel look)
-function posterize() {
-  const img = ctx.getImageData(0, 0, INTERNAL_RES, INTERNAL_RES);
-  const data = img.data;
-
-  const step = 255 / (COLOR_LEVELS - 1);
-
-  for (let i = 0; i < data.length; i += 4) {
-    data[i]     = Math.round(data[i] / step) * step;     // R
-    data[i + 1] = Math.round(data[i + 1] / step) * step; // G
-    data[i + 2] = Math.round(data[i + 2] / step) * step; // B
-  }
-
-  ctx.putImageData(img, 0, 0);
 }
 
 // Capture photo
 captureBtn.addEventListener("click", () => {
-  const out = document.createElement("canvas");
-  out.width = OUTPUT_RES;
-  out.height = OUTPUT_RES;
+  const outCanvas = document.createElement("canvas");
+  outCanvas.width = OUTPUT_RES;
+  outCanvas.height = OUTPUT_RES;
 
-  const octx = out.getContext("2d");
-  octx.imageSmoothingEnabled = false;
-  octx.drawImage(canvas, 0, 0, OUTPUT_RES, OUTPUT_RES);
+  const outCtx = outCanvas.getContext("2d");
+  outCtx.imageSmoothingEnabled = false;
 
-  capturedData = out.toDataURL("image/png");
+  // Clean upscale
+  outCtx.drawImage(canvas, 0, 0, OUTPUT_RES, OUTPUT_RES);
+
+  capturedData = outCanvas.toDataURL("image/png");
 
   photo.src = capturedData;
   preview.classList.remove("hidden");
   saveBtn.disabled = false;
 });
 
-// Save image (cross-device correct)
+// Save image (cross-device safe)
 saveBtn.addEventListener("click", async () => {
   if (!capturedData) return;
 
