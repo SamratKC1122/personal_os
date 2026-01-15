@@ -2,31 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Desktop UI</title>
+  <title>Nokia Snake</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <h1>Nokia Snake 🐍</h1>
+  <div class="score">Score: <span id="score">0</span></div>
+  <canvas id="game" width="400" height="400"></canvas>
+  <p class="info">Use arrow keys to move</p>
 
-<div class="desktop">
-
-  <div id="aboutWindow" class="window">
-    <div class="title-bar">
-      <span>About Me</span>
-      <button onclick="closeWindow()">X</button>
-    </div>
-
-    <div class="window-content">
-      <p>This is my about me data.</p>
-    </div>
-  </div>
-
-</div>
-
-<div class="taskbar">
-  <button onclick="openWindow()">Open Window</button>
-</div>
-
-<!-- ✅ SCRIPT MUST BE HERE -->
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
