@@ -8,27 +8,27 @@
 </head>
 <body>
 
-<main class="app">
+<div class="app">
   <header>
     <h1>Pixel Camera</h1>
-    <p>High-quality pixelated camera</p>
+    <span>Pixelated • Clean • Stable</span>
   </header>
 
-  <video id="video" autoplay playsinline></video>
-
-  <div class="camera-frame">
+  <div class="camera-container">
     <canvas id="canvas"></canvas>
   </div>
 
   <div class="controls">
-    <button id="capture">📸 Capture</button>
-    <a id="download" download="pixel-photo.png">💾 Save</a>
+    <button id="capture">Capture</button>
+    <button id="save" disabled>Save</button>
   </div>
 
-  <img id="photo" />
+  <div class="preview hidden">
+    <img id="photo" />
+  </div>
+</div>
 
-</main>
-
+<video id="video" autoplay playsinline></video>
 <script src="script.js"></script>
 </body>
 </html>
