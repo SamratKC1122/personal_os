@@ -3,8 +3,8 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const captureBtn = document.getElementById("capture");
 const photo = document.getElementById("photo");
+const downloadLink = document.getElementById("download");
 
-// Pixel resolution
 const pixelSize = 40;
 canvas.width = pixelSize;
 canvas.height = pixelSize;
@@ -16,12 +16,9 @@ navigator.mediaDevices.getUserMedia({ video: true })
     video.play();
     requestAnimationFrame(draw);
   })
-  .catch(err => {
-    alert("Camera access denied");
-    console.error(err);
-  });
+  .catch(() => alert("Camera access denied"));
 
-// Draw pixelated video
+// Draw live pixel video
 function draw() {
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(video, 0, 0, pixelSize, pixelSize);
@@ -33,20 +30,18 @@ captureBtn.addEventListener("click", () => {
   const saveCanvas = document.createElement("canvas");
   const saveCtx = saveCanvas.getContext("2d");
 
-  const outputSize = 400;
-  saveCanvas.width = outputSize;
-  saveCanvas.height = outputSize;
+  saveCanvas.width = 400;
+  saveCanvas.height = 400;
 
   saveCtx.imageSmoothingEnabled = false;
-  saveCtx.drawImage(canvas, 0, 0, outputSize, outputSize);
+  saveCtx.drawImage(canvas, 0, 0, 400, 400);
 
-  // Show preview on page
-  const imageData = saveCanvas.toDataURL("image/png");
-  photo.src = imageData;
+  const dataURL = saveCanvas.toDataURL("image/png");
 
-  // Download image
-  const link = document.createElement("a");
-  link.href = imageData;
-  link.download = `pixel-photo-${Date.now()}.png`;
-  link.click();
+  // Show preview
+  photo.src = dataURL;
+
+  // Enable manual save
+  downloadLink.href = dataURL;
+  downloadLink.style.display = "inline-block";
 });
