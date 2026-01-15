@@ -8,19 +8,17 @@ const photo = document.getElementById("photo");
 const preview = document.querySelector(".preview");
 
 /*
-  🎥 SUBTLE CINEMATIC PIXEL SETTINGS
+  🎞️ CINEMATIC PIXEL SETTINGS (COLOR SAFE)
 */
-const INTERNAL_RES = 112;   // 👈 key change: calm pixel size
-const OUTPUT_RES = 1200;   // clean export
-const FPS = 30;            // smooth, cinematic
+const INTERNAL_RES = 240;   // 👈 key: keeps color & detail
+const OUTPUT_RES = 1600;   // clean cinematic export
 
 canvas.width = INTERNAL_RES;
 canvas.height = INTERNAL_RES;
 
-let lastFrame = 0;
 let capturedData = null;
 
-// Start camera
+// Start camera (HIGH QUALITY INPUT)
 navigator.mediaDevices.getUserMedia({
   video: {
     width: 1920,
@@ -34,13 +32,8 @@ navigator.mediaDevices.getUserMedia({
 })
 .catch(() => alert("Camera access denied"));
 
-function render(time) {
-  if (time - lastFrame < 1000 / FPS) {
-    requestAnimationFrame(render);
-    return;
-  }
-  lastFrame = time;
-
+function render() {
+  // Draw high-quality frame → gentle pixel grid
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, INTERNAL_RES, INTERNAL_RES);
   ctx.drawImage(video, 0, 0, INTERNAL_RES, INTERNAL_RES);
@@ -55,9 +48,9 @@ captureBtn.addEventListener("click", () => {
   outCanvas.height = OUTPUT_RES;
 
   const outCtx = outCanvas.getContext("2d");
-  outCtx.imageSmoothingEnabled = false;
 
-  // Nearest-neighbor upscale (THIS is the pixel look)
+  // IMPORTANT: nearest-neighbor upscale
+  outCtx.imageSmoothingEnabled = false;
   outCtx.drawImage(canvas, 0, 0, OUTPUT_RES, OUTPUT_RES);
 
   capturedData = outCanvas.toDataURL("image/png");
@@ -67,20 +60,22 @@ captureBtn.addEventListener("click", () => {
   saveBtn.disabled = false;
 });
 
-// Save image (correct on all devices)
+// Save image (correct behavior everywhere)
 saveBtn.addEventListener("click", async () => {
   if (!capturedData) return;
 
   if (navigator.share) {
     const blob = await (await fetch(capturedData)).blob();
-    const file = new File([blob], "pixel-photo.png", { type: "image/png" });
+    const file = new File([blob], "cinematic-pixel-photo.png", {
+      type: "image/png"
+    });
     navigator.share({ files: [file] });
     return;
   }
 
   const link = document.createElement("a");
   link.href = capturedData;
-  link.download = "pixel-photo.png";
+  link.download = "cinematic-pixel-photo.png";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
