@@ -1,15 +1,15 @@
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+const captureBtn = document.getElementById("capture");
 
-// LOW resolution (controls block size)
-const pixelWidth = 40;
-const pixelHeight = 40;
+// Low resolution for pixel effect
+const pixelSize = 40;
 
-canvas.width = pixelWidth;
-canvas.height = pixelHeight;
+canvas.width = pixelSize;
+canvas.height = pixelSize;
 
-// Access webcam
+// Start camera
 navigator.mediaDevices.getUserMedia({ video: true })
   .then(stream => {
     video.srcObject = stream;
@@ -21,12 +21,29 @@ navigator.mediaDevices.getUserMedia({ video: true })
     console.error(err);
   });
 
+// Draw pixelated video
 function draw() {
-  // Draw video at very low resolution
-  ctx.drawImage(video, 0, 0, pixelWidth, pixelHeight);
-
-  // Scale it back up to create blocky effect
   ctx.imageSmoothingEnabled = false;
-
+  ctx.drawImage(video, 0, 0, pixelSize, pixelSize);
   requestAnimationFrame(draw);
 }
+
+// Capture photo and save
+captureBtn.addEventListener("click", () => {
+  // Create a high-res canvas for saving
+  const saveCanvas = document.createElement("canvas");
+  const saveCtx = saveCanvas.getContext("2d");
+
+  const outputSize = 400;
+  saveCanvas.width = outputSize;
+  saveCanvas.height = outputSize;
+
+  saveCtx.imageSmoothingEnabled = false;
+  saveCtx.drawImage(canvas, 0, 0, outputSize, outputSize);
+
+  // Convert to image and download
+  const link = document.createElement("a");
+  link.download = `pixel-photo-${Date.now()}.png`;
+  link.href = saveCanvas.toDataURL("image/png");
+  link.click();
+});
