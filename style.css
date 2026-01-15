@@ -25,3 +25,10 @@ button {
   border: none;
   cursor: pointer;
 }
+
+img {
+  margin-top: 15px;
+  border: 4px solid #0f0;
+  width: 400px;
+  image-rendering: pixelated;
+}
