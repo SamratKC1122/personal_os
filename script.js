@@ -2,10 +2,10 @@ const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const captureBtn = document.getElementById("capture");
+const photo = document.getElementById("photo");
 
-// Low resolution for pixel effect
+// Pixel resolution
 const pixelSize = 40;
-
 canvas.width = pixelSize;
 canvas.height = pixelSize;
 
@@ -28,9 +28,8 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
-// Capture photo and save
+// Capture photo
 captureBtn.addEventListener("click", () => {
-  // Create a high-res canvas for saving
   const saveCanvas = document.createElement("canvas");
   const saveCtx = saveCanvas.getContext("2d");
 
@@ -41,9 +40,13 @@ captureBtn.addEventListener("click", () => {
   saveCtx.imageSmoothingEnabled = false;
   saveCtx.drawImage(canvas, 0, 0, outputSize, outputSize);
 
-  // Convert to image and download
+  // Show preview on page
+  const imageData = saveCanvas.toDataURL("image/png");
+  photo.src = imageData;
+
+  // Download image
   const link = document.createElement("a");
+  link.href = imageData;
   link.download = `pixel-photo-${Date.now()}.png`;
-  link.href = saveCanvas.toDataURL("image/png");
   link.click();
 });
