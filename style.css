@@ -9,7 +9,7 @@ video {
   display: none;
 }
 
-canvas {
+canvas, img {
   border: 4px solid #0f0;
   image-rendering: pixelated;
   width: 400px;
@@ -17,18 +17,18 @@ canvas {
   margin-top: 20px;
 }
 
-button {
+button, a {
   margin-top: 15px;
   padding: 10px 20px;
   font-size: 16px;
   background: #0f0;
+  color: #000;
   border: none;
   cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
 }
 
-img {
-  margin-top: 15px;
-  border: 4px solid #0f0;
-  width: 400px;
-  image-rendering: pixelated;
+a {
+  display: none;
 }
