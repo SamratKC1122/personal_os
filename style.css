@@ -1,33 +1,66 @@
+:root {
+  --accent: #00ff66;
+  --bg: #0b0b0b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  background: #111;
-  color: #0f0;
-  font-family: monospace;
+  margin: 0;
+  background: var(--bg);
+  color: var(--accent);
+  font-family: system-ui, monospace;
+  display: flex;
+  justify-content: center;
+}
+
+.app {
+  width: 100%;
+  max-width: 480px;
+  padding: 1rem;
+}
+
+header {
   text-align: center;
 }
 
-video {
-  display: none;
+.camera-frame {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 4px solid var(--accent);
+  margin: 1rem 0;
 }
 
-canvas, img {
-  border: 4px solid #0f0;
+canvas {
+  width: 100%;
+  height: 100%;
   image-rendering: pixelated;
-  width: 400px;
-  height: 400px;
-  margin-top: 20px;
+  display: block;
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 button, a {
-  margin: 10px;
-  padding: 10px 20px;
-  font-size: 16px;
-  background: #0f0;
+  flex: 1;
+  padding: 0.75rem;
+  font-size: 1rem;
+  background: var(--accent);
   color: #000;
   border: none;
-  cursor: pointer;
+  text-align: center;
   text-decoration: none;
+  cursor: pointer;
 }
 
-a {
-  display: none;
+img {
+  width: 100%;
+  margin-top: 1rem;
+  border: 4px solid var(--accent);
+  image-rendering: pixelated;
 }
