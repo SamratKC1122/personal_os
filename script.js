@@ -1,77 +1,32 @@
-const canvas = document.getElementById("game");
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-const box = 20;
-const size = canvas.width;
+// LOW resolution (controls block size)
+const pixelWidth = 40;
+const pixelHeight = 40;
 
-let snake = [
-  { x: 200, y: 200 },
-  { x: 180, y: 200 },
-  { x: 160, y: 200 }
-];
+canvas.width = pixelWidth;
+canvas.height = pixelHeight;
 
-let direction = "RIGHT";
-let food = spawnFood();
-let score = 0;
-
-document.addEventListener("keydown", changeDirection);
-
-function changeDirection(e) {
-  if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
-  if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
-  if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
-  if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
-}
-
-function spawnFood() {
-  return {
-    x: Math.floor(Math.random() * (size / box)) * box,
-    y: Math.floor(Math.random() * (size / box)) * box
-  };
-}
-
-function draw() {
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, size, size);
-
-  // draw food
-  ctx.fillStyle = "red";
-  ctx.fillRect(food.x, food.y, box, box);
-
-  // draw snake
-  ctx.fillStyle = "#0f0";
-  snake.forEach(part => {
-    ctx.fillRect(part.x, part.y, box, box);
+// Access webcam
+navigator.mediaDevices.getUserMedia({ video: true })
+  .then(stream => {
+    video.srcObject = stream;
+    video.play();
+    requestAnimationFrame(draw);
+  })
+  .catch(err => {
+    alert("Camera access denied");
+    console.error(err);
   });
 
-  // move snake
-  let head = { ...snake[0] };
-  if (direction === "LEFT") head.x -= box;
-  if (direction === "UP") head.y -= box;
-  if (direction === "RIGHT") head.x += box;
-  if (direction === "DOWN") head.y += box;
+function draw() {
+  // Draw video at very low resolution
+  ctx.drawImage(video, 0, 0, pixelWidth, pixelHeight);
 
-  // collision
-  if (
-    head.x < 0 || head.y < 0 ||
-    head.x >= size || head.y >= size ||
-    snake.some(part => part.x === head.x && part.y === head.y)
-  ) {
-    clearInterval(game);
-    alert("Game Over! Score: " + score);
-    location.reload();
-  }
+  // Scale it back up to create blocky effect
+  ctx.imageSmoothingEnabled = false;
 
-  // eat food
-  if (head.x === food.x && head.y === food.y) {
-    score++;
-    document.getElementById("score").textContent = score;
-    food = spawnFood();
-  } else {
-    snake.pop();
-  }
-
-  snake.unshift(head);
+  requestAnimationFrame(draw);
 }
-
-const game = setInterval(draw, 120);
