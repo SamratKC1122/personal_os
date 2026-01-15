@@ -6,7 +6,7 @@ body {
 }
 
 video {
-  display: none; /* hidden, used only as source */
+  display: none;
 }
 
 canvas {
@@ -15,4 +15,13 @@ canvas {
   width: 400px;
   height: 400px;
   margin-top: 20px;
+}
+
+button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background: #0f0;
+  border: none;
+  cursor: pointer;
 }
