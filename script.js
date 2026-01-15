@@ -8,11 +8,11 @@ const photo = document.getElementById("photo");
 const preview = document.querySelector(".preview");
 
 /*
-  🎥 CINEMATIC PIXEL SETTINGS
+  🎥 SUBTLE CINEMATIC PIXEL SETTINGS
 */
-const INTERNAL_RES = 72;    // balanced pixel size
-const OUTPUT_RES = 1024;   // clean cinematic export
-const FPS = 20;            // stable motion
+const INTERNAL_RES = 112;   // 👈 key change: calm pixel size
+const OUTPUT_RES = 1200;   // clean export
+const FPS = 30;            // smooth, cinematic
 
 canvas.width = INTERNAL_RES;
 canvas.height = INTERNAL_RES;
@@ -23,8 +23,8 @@ let capturedData = null;
 // Start camera
 navigator.mediaDevices.getUserMedia({
   video: {
-    width: 1280,
-    height: 1280
+    width: 1920,
+    height: 1920
   }
 })
 .then(stream => {
@@ -34,7 +34,6 @@ navigator.mediaDevices.getUserMedia({
 })
 .catch(() => alert("Camera access denied"));
 
-// Render loop (pixelated but readable)
 function render(time) {
   if (time - lastFrame < 1000 / FPS) {
     requestAnimationFrame(render);
@@ -58,7 +57,7 @@ captureBtn.addEventListener("click", () => {
   const outCtx = outCanvas.getContext("2d");
   outCtx.imageSmoothingEnabled = false;
 
-  // Clean upscale
+  // Nearest-neighbor upscale (THIS is the pixel look)
   outCtx.drawImage(canvas, 0, 0, OUTPUT_RES, OUTPUT_RES);
 
   capturedData = outCanvas.toDataURL("image/png");
@@ -68,11 +67,10 @@ captureBtn.addEventListener("click", () => {
   saveBtn.disabled = false;
 });
 
-// Save image (cross-device safe)
+// Save image (correct on all devices)
 saveBtn.addEventListener("click", async () => {
   if (!capturedData) return;
 
-  // Mobile: Share Sheet
   if (navigator.share) {
     const blob = await (await fetch(capturedData)).blob();
     const file = new File([blob], "pixel-photo.png", { type: "image/png" });
@@ -80,7 +78,6 @@ saveBtn.addEventListener("click", async () => {
     return;
   }
 
-  // Desktop download
   const link = document.createElement("a");
   link.href = capturedData;
   link.download = "pixel-photo.png";
