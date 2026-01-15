@@ -8,12 +8,12 @@ const photo = document.getElementById("photo");
 const preview = document.querySelector(".preview");
 
 /*
-  🔥 PIXEL SETTINGS
-  Lower INTERNAL_RES = more blocky
+  🔥🔥 AGGRESSIVE PIXEL SETTINGS 🔥🔥
 */
-const INTERNAL_RES = 64;    // main pixel strength
-const OUTPUT_RES = 768;    // export resolution
-const FPS = 20;            // motion stability
+const INTERNAL_RES = 32;   // VERY blocky
+const OUTPUT_RES = 768;   // clean upscale
+const FPS = 15;           // stabilizes motion
+const COLOR_LEVELS = 4;   // posterization strength
 
 canvas.width = INTERNAL_RES;
 canvas.height = INTERNAL_RES;
@@ -35,7 +35,7 @@ navigator.mediaDevices.getUserMedia({
 })
 .catch(() => alert("Camera access denied"));
 
-// Render loop (FPS capped + hard pixels)
+// Main render loop
 function render(time) {
   if (time - lastFrame < 1000 / FPS) {
     requestAnimationFrame(render);
@@ -43,39 +43,53 @@ function render(time) {
   }
   lastFrame = time;
 
-  // IMPORTANT: disable smoothing BEFORE draw
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, INTERNAL_RES, INTERNAL_RES);
   ctx.drawImage(video, 0, 0, INTERNAL_RES, INTERNAL_RES);
 
+  posterize();
+
   requestAnimationFrame(render);
+}
+
+// Posterization (forces pixel look)
+function posterize() {
+  const img = ctx.getImageData(0, 0, INTERNAL_RES, INTERNAL_RES);
+  const data = img.data;
+
+  const step = 255 / (COLOR_LEVELS - 1);
+
+  for (let i = 0; i < data.length; i += 4) {
+    data[i]     = Math.round(data[i] / step) * step;     // R
+    data[i + 1] = Math.round(data[i + 1] / step) * step; // G
+    data[i + 2] = Math.round(data[i + 2] / step) * step; // B
+  }
+
+  ctx.putImageData(img, 0, 0);
 }
 
 // Capture photo
 captureBtn.addEventListener("click", () => {
-  const outCanvas = document.createElement("canvas");
-  outCanvas.width = OUTPUT_RES;
-  outCanvas.height = OUTPUT_RES;
+  const out = document.createElement("canvas");
+  out.width = OUTPUT_RES;
+  out.height = OUTPUT_RES;
 
-  const outCtx = outCanvas.getContext("2d");
-  outCtx.imageSmoothingEnabled = false;
+  const octx = out.getContext("2d");
+  octx.imageSmoothingEnabled = false;
+  octx.drawImage(canvas, 0, 0, OUTPUT_RES, OUTPUT_RES);
 
-  // Scale up pixel image cleanly
-  outCtx.drawImage(canvas, 0, 0, OUTPUT_RES, OUTPUT_RES);
+  capturedData = out.toDataURL("image/png");
 
-  capturedData = outCanvas.toDataURL("image/png");
-
-  // Show preview
   photo.src = capturedData;
   preview.classList.remove("hidden");
   saveBtn.disabled = false;
 });
 
-// Save image (desktop + mobile safe)
+// Save image (cross-device correct)
 saveBtn.addEventListener("click", async () => {
   if (!capturedData) return;
 
-  // Mobile (iOS / Android) — Share Sheet
+  // Mobile: Share Sheet
   if (navigator.share) {
     const blob = await (await fetch(capturedData)).blob();
     const file = new File([blob], "pixel-photo.png", { type: "image/png" });
