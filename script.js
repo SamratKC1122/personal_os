@@ -12,40 +12,48 @@ canvas.width = pixelSize;
 canvas.height = pixelSize;
 
 let currentStream = null;
-let facingMode = "user"; // front camera by default
+let cameras = [];
+let currentCameraIndex = 0;
 
-// Start camera
-async function startCamera() {
-  // Stop previous stream
+// Get available cameras
+async function getCameras() {
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  cameras = devices.filter(d => d.kind === "videoinput");
+}
+
+// Start camera by deviceId
+async function startCamera(deviceId = null) {
   if (currentStream) {
     currentStream.getTracks().forEach(track => track.stop());
   }
 
-  try {
-    currentStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode }
-    });
+  const constraints = {
+    video: deviceId
+      ? { deviceId: { exact: deviceId } }
+      : { facingMode: { ideal: "user" } }
+  };
 
-    video.srcObject = currentStream;
-    video.play();
-    requestAnimationFrame(draw);
-  } catch (err) {
-    alert("Camera not available");
-    console.error(err);
-  }
+  currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+  video.srcObject = currentStream;
+  await video.play();
 }
 
-// Draw pixelated video
+// Pixel draw loop
 function draw() {
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(video, 0, 0, pixelSize, pixelSize);
   requestAnimationFrame(draw);
 }
 
-// Flip camera
-flipBtn.addEventListener("click", () => {
-  facingMode = facingMode === "user" ? "environment" : "user";
-  startCamera();
+// Flip camera (REAL switching)
+flipBtn.addEventListener("click", async () => {
+  if (cameras.length <= 1) {
+    alert("No secondary camera found");
+    return;
+  }
+
+  currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+  await startCamera(cameras[currentCameraIndex].deviceId);
 });
 
 // Capture photo
@@ -60,11 +68,14 @@ captureBtn.addEventListener("click", () => {
   saveCtx.drawImage(canvas, 0, 0, 400, 400);
 
   const dataURL = saveCanvas.toDataURL("image/png");
-
   photo.src = dataURL;
   downloadLink.href = dataURL;
   downloadLink.style.display = "inline-block";
 });
 
-// Start on load
-startCamera();
+// Init
+(async function init() {
+  await getCameras();
+  await startCamera(cameras[0]?.deviceId);
+  draw();
+})();
