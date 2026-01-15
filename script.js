@@ -1,81 +1,60 @@
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-
 const captureBtn = document.getElementById("capture");
-const flipBtn = document.getElementById("flip");
-const downloadLink = document.getElementById("download");
+const download = document.getElementById("download");
 const photo = document.getElementById("photo");
 
-const pixelSize = 40;
-canvas.width = pixelSize;
-canvas.height = pixelSize;
+/*
+  Internal resolution:
+  - Higher = better motion quality
+  - Still pixelated when scaled
+*/
+const INTERNAL_RES = 120;
+const OUTPUT_RES = 600;
 
-let currentStream = null;
-let cameras = [];
-let currentCameraIndex = 0;
+canvas.width = INTERNAL_RES;
+canvas.height = INTERNAL_RES;
 
-// Get available cameras
-async function getCameras() {
-  const devices = await navigator.mediaDevices.enumerateDevices();
-  cameras = devices.filter(d => d.kind === "videoinput");
-}
+let lastFrame = 0;
+const FPS = 20;
 
-// Start camera by deviceId
-async function startCamera(deviceId = null) {
-  if (currentStream) {
-    currentStream.getTracks().forEach(track => track.stop());
-  }
+// Start camera
+navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 640 } })
+  .then(stream => {
+    video.srcObject = stream;
+    video.play();
+    requestAnimationFrame(render);
+  })
+  .catch(() => alert("Camera access denied"));
 
-  const constraints = {
-    video: deviceId
-      ? { deviceId: { exact: deviceId } }
-      : { facingMode: { ideal: "user" } }
-  };
-
-  currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-  video.srcObject = currentStream;
-  await video.play();
-}
-
-// Pixel draw loop
-function draw() {
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(video, 0, 0, pixelSize, pixelSize);
-  requestAnimationFrame(draw);
-}
-
-// Flip camera (REAL switching)
-flipBtn.addEventListener("click", async () => {
-  if (cameras.length <= 1) {
-    alert("No secondary camera found");
+// Controlled render loop (FPS capped)
+function render(timestamp) {
+  if (timestamp - lastFrame < 1000 / FPS) {
+    requestAnimationFrame(render);
     return;
   }
+  lastFrame = timestamp;
 
-  currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
-  await startCamera(cameras[currentCameraIndex].deviceId);
-});
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(video, 0, 0, INTERNAL_RES, INTERNAL_RES);
+  ctx.imageSmoothingEnabled = false;
+
+  requestAnimationFrame(render);
+}
 
 // Capture photo
 captureBtn.addEventListener("click", () => {
-  const saveCanvas = document.createElement("canvas");
-  const saveCtx = saveCanvas.getContext("2d");
+  const out = document.createElement("canvas");
+  out.width = OUTPUT_RES;
+  out.height = OUTPUT_RES;
 
-  saveCanvas.width = 400;
-  saveCanvas.height = 400;
+  const octx = out.getContext("2d");
+  octx.imageSmoothingEnabled = false;
+  octx.drawImage(canvas, 0, 0, OUTPUT_RES, OUTPUT_RES);
 
-  saveCtx.imageSmoothingEnabled = false;
-  saveCtx.drawImage(canvas, 0, 0, 400, 400);
-
-  const dataURL = saveCanvas.toDataURL("image/png");
-  photo.src = dataURL;
-  downloadLink.href = dataURL;
-  downloadLink.style.display = "inline-block";
+  const data = out.toDataURL("image/png");
+  photo.src = data;
+  download.href = data;
+  download.style.display = "block";
 });
-
-// Init
-(async function init() {
-  await getCameras();
-  await startCamera(cameras[0]?.deviceId);
-  draw();
-})();
