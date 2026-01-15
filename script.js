@@ -7,9 +7,13 @@ const saveBtn = document.getElementById("save");
 const photo = document.getElementById("photo");
 const preview = document.querySelector(".preview");
 
-const INTERNAL_RES = 160;
-const OUTPUT_RES = 800;
-const FPS = 24;
+/*
+  🔥 PIXEL SETTINGS
+  Lower INTERNAL_RES = more blocky
+*/
+const INTERNAL_RES = 64;    // main pixel strength
+const OUTPUT_RES = 768;    // export resolution
+const FPS = 20;            // motion stability
 
 canvas.width = INTERNAL_RES;
 canvas.height = INTERNAL_RES;
@@ -19,7 +23,10 @@ let capturedData = null;
 
 // Start camera
 navigator.mediaDevices.getUserMedia({
-  video: { width: 640, height: 640 }
+  video: {
+    width: 640,
+    height: 640
+  }
 })
 .then(stream => {
   video.srcObject = stream;
@@ -28,42 +35,47 @@ navigator.mediaDevices.getUserMedia({
 })
 .catch(() => alert("Camera access denied"));
 
-function render(t) {
-  if (t - lastFrame < 1000 / FPS) {
+// Render loop (FPS capped + hard pixels)
+function render(time) {
+  if (time - lastFrame < 1000 / FPS) {
     requestAnimationFrame(render);
     return;
   }
-  lastFrame = t;
+  lastFrame = time;
 
-  ctx.imageSmoothingEnabled = true;
-  ctx.drawImage(video, 0, 0, INTERNAL_RES, INTERNAL_RES);
+  // IMPORTANT: disable smoothing BEFORE draw
   ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0, 0, INTERNAL_RES, INTERNAL_RES);
+  ctx.drawImage(video, 0, 0, INTERNAL_RES, INTERNAL_RES);
 
   requestAnimationFrame(render);
 }
 
-// Capture
+// Capture photo
 captureBtn.addEventListener("click", () => {
-  const out = document.createElement("canvas");
-  out.width = OUTPUT_RES;
-  out.height = OUTPUT_RES;
+  const outCanvas = document.createElement("canvas");
+  outCanvas.width = OUTPUT_RES;
+  outCanvas.height = OUTPUT_RES;
 
-  const octx = out.getContext("2d");
-  octx.imageSmoothingEnabled = false;
-  octx.drawImage(canvas, 0, 0, OUTPUT_RES, OUTPUT_RES);
+  const outCtx = outCanvas.getContext("2d");
+  outCtx.imageSmoothingEnabled = false;
 
-  capturedData = out.toDataURL("image/png");
+  // Scale up pixel image cleanly
+  outCtx.drawImage(canvas, 0, 0, OUTPUT_RES, OUTPUT_RES);
 
+  capturedData = outCanvas.toDataURL("image/png");
+
+  // Show preview
   photo.src = capturedData;
   preview.classList.remove("hidden");
   saveBtn.disabled = false;
 });
 
-// Save (DESKTOP + MOBILE SAFE)
+// Save image (desktop + mobile safe)
 saveBtn.addEventListener("click", async () => {
   if (!capturedData) return;
 
-  // Mobile-friendly share (iOS / Android)
+  // Mobile (iOS / Android) — Share Sheet
   if (navigator.share) {
     const blob = await (await fetch(capturedData)).blob();
     const file = new File([blob], "pixel-photo.png", { type: "image/png" });
